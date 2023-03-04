@@ -45,6 +45,13 @@ class _HomeState extends State<Home> {
     });
   }
 
+  void postData() {
+
+    NetworkRepository.instance.postData().then((value) {
+
+    });
+  }
+
 
 
   void getCommentByPostId(int id){
@@ -206,6 +213,14 @@ class _HomeState extends State<Home> {
                 });
               },
               child: const Text('Post Query By Id')),
+
+          ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  postData();
+                });
+              },
+              child: const Text('Post Data')),
           const SizedBox(
             height: 10,
           ),
@@ -226,4 +241,6 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
+
 }

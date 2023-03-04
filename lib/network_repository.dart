@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:ffi';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_api/comment.dart';
 import 'package:flutter_api/post.dart';
 import 'package:flutter_api/user.dart';
@@ -55,6 +57,25 @@ class NetworkRepository{
     }
 
     return commentList;
+
+  }
+
+  Future<dynamic> postData()async{
+    Post post = Post(userId: 1, id: 5, title: "No Title", body: "No Body");
+
+    var postData = json.encode(post.toJson());
+
+    Map<String,String> header = {
+      'Content-Type': 'application/json',
+      'Data': 'data'
+    };
+
+    http.Response response = await http.post(Uri.parse("https://jsonplaceholder.typicode.com/posts"),headers: header,body: postData);
+    if(response.statusCode == 201){
+      Post post = Post.fromJson(json.decode(response.body));
+     // debugPrint(response.headers.toString());
+      debugPrint(post.toJson().toString());
+    }
 
   }
 
