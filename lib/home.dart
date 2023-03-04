@@ -1,7 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_api/network_repository.dart';
 import 'package:flutter_api/post.dart';
 import 'package:flutter_api/user.dart';
+import 'package:flutter_api/comment.dart';
+
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -10,11 +13,13 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-enum action { DEFAULT, POST_LIST, USER_LIST }
+enum action { DEFAULT, POST_LIST, USER_LIST, COMMENT_LIST }
 
 class _HomeState extends State<Home> {
   List<Post> _postList = [];
   List<User> _userList = [];
+  List<Comment> _commentList = [];
+  Post? _post;
 
   var data = action.DEFAULT;
 
@@ -29,14 +34,78 @@ class _HomeState extends State<Home> {
 
     NetworkRepository.instance.userList().then((value) {
       _userList = value;
-      print(userToJson(_userList));
+    });
+  }
+
+  void getPostById(int postId) {
+    NetworkRepository.instance.getPostById(postId).then((value) {
+      setState(() {
+        _post = value;
+      });
+    });
+  }
+
+
+
+  void getCommentByPostId(int id){
+    NetworkRepository.instance.getCommentByPostId(id).then((value) {
+      setState(() {
+        _commentList = value;
+      });
     });
   }
 
   Widget getText(String text) {
-    return Text(text,
-      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold,color: Colors.white),
+    return Text(
+      text,
+      style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
     );
+  }
+
+  Widget getCommentText(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+    );
+  }
+
+  Widget postContainer(Post? post) {
+    if (post == null) {
+      return const Text(
+        'No Post Found',
+        style: TextStyle(color: Colors.red),
+      );
+    } else {
+      return Container(
+        color: Colors.blue,
+        width: double.infinity,
+        padding: const EdgeInsets.all(10),
+        margin: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'User Id : ${post.userId}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            Text(
+              'Id : ${post.id}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            Text(
+              'Title : ${post.title}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            Text(
+              'Body : ${post.body}',
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget getPostListView() {
@@ -46,33 +115,7 @@ class _HomeState extends State<Home> {
           return ListView.builder(
               itemCount: _postList.length,
               itemBuilder: (context, index) {
-                return Container(
-                  color: Colors.blue,
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'User Id : ${_postList[index].userId}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'Id : ${_postList[index].id}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'Title : ${_postList[index].title}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'Body : ${_postList[index].body}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                );
+                return postContainer(_postList[index]);
               });
         }
 
@@ -98,10 +141,32 @@ class _HomeState extends State<Home> {
                 );
               });
         }
+      case action.COMMENT_LIST:
+        {
+          return ListView.builder(
+              itemCount: _commentList.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.green,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      getCommentText("Id : ${_commentList[index].id.toString()}"),
+                      getCommentText("Post ID : ${_commentList[index].postId}"),
+                      getCommentText("Email : ${_commentList[index].email}"),
+                      getCommentText(_commentList[index].body),
+                    ],
+                  ),
+                );
+              });
+        }
 
       default:
         {
-          return const Text('Nothing to Show');
+          return const Text('Nothing to Show in List');
         }
     }
   }
@@ -125,6 +190,37 @@ class _HomeState extends State<Home> {
                 });
               },
               child: const Text('User List')),
+          ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  data = action.DEFAULT;
+                  getPostById(1);
+                });
+              },
+              child: const Text('Post By Id')),
+          ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  getCommentByPostId(1);
+                  data = action.COMMENT_LIST;
+                });
+              },
+              child: const Text('Post Query By Id')),
+          const SizedBox(
+            height: 10,
+          ),
+          const Text('Element'),
+          const SizedBox(
+            height: 10,
+          ),
+          postContainer(_post),
+          const SizedBox(
+            height: 10,
+          ),
+          const Text('List'),
+          const SizedBox(
+            height: 10,
+          ),
           Expanded(child: getPostListView()),
         ],
       ),
